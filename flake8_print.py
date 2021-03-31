@@ -18,7 +18,7 @@ PRINT_FUNCTION_NAMES = [PRINT_FUNCTION_NAME, PPRINT_FUNCTION_NAME, BREAKPOINT, P
 
 VIOLATIONS = {
     "found": {"print": "T001 print found.", "pprint": "T003 pprint found.", "breakpoint": "T005 breakpoint found.", "peek": "T007 peek found."},
-    "declared": {"print": "T002 Python 2.x reserved word print used.", "pprint": "T004 pprint declared", "breakpoint": "T006 breakpoint declared", "peek": "T008 peek declared"},
+    "declared": {"print": "T002 Python 2.x reserved word print used.", "pprint": "T004 pprint declared"},
 }
 
 
