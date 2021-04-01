@@ -14,7 +14,8 @@ PRINT_FUNCTION_NAME = "print"
 PPRINT_FUNCTION_NAME = "pprint"
 BREAKPOINT = "breakpoint"
 PEEK_FUNCTION_NAME = "peek"
-PRINT_FUNCTION_NAMES = [PRINT_FUNCTION_NAME, PPRINT_FUNCTION_NAME, BREAKPOINT, PEEK_FUNCTION_NAME]
+FUNCTION_NAMES_DECLARED = [PRINT_FUNCTION_NAME, PPRINT_FUNCTION_NAME, BREAKPOINT]
+FUNCTION_NAMES_FOUND = [PRINT_FUNCTION_NAME, PPRINT_FUNCTION_NAME, BREAKPOINT, PEEK_FUNCTION_NAME]
 
 VIOLATIONS = {
     "found": {"print": "T001 print found.", "pprint": "T003 pprint found.", "breakpoint": "T005 breakpoint found.", "peek": "T007 peek found."},
@@ -30,13 +31,13 @@ class PrintFinder(ast.NodeVisitor):
 
     def visit_Print(self, node):
         """Only exists in python 2."""
-        self.prints_used[(node.lineno, node.col_offset)] = VIOLATIONS["found"][PRINT_FUNCTION_NAME]
+        self.prints_used[(node.lineno, node.col_offset)] = VIOLATIONS["found"][FUNCTION_NAMES_FOUND]
 
     def visit_Call(self, node):
-        is_print_function = getattr(node.func, "id", None) in PRINT_FUNCTION_NAMES
+        is_print_function = getattr(node.func, "id", None) in FUNCTION_NAMES_FOUND
         is_print_function_attribute = (
-            getattr(getattr(node.func, "value", None), "id", None) in PRINT_FUNCTION_NAMES
-            and getattr(node.func, "attr", None) in PRINT_FUNCTION_NAMES
+            getattr(getattr(node.func, "value", None), "id", None) in FUNCTION_NAMES_FOUND
+            and getattr(node.func, "attr", None) in FUNCTION_NAMES_FOUND
         )
         if is_print_function:
             self.prints_used[(node.lineno, node.col_offset)] = VIOLATIONS["found"][node.func.id]
@@ -45,24 +46,24 @@ class PrintFinder(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_FunctionDef(self, node):
-        if node.name in PRINT_FUNCTION_NAMES:
+        if node.name in FUNCTION_NAMES_DECLARED:
             self.prints_redefined[(node.lineno, node.col_offset)] = VIOLATIONS["declared"][node.name]
         if PY2:
             for arg in node.args.args:
-                if arg.id in PRINT_FUNCTION_NAMES:
+                if arg.id in FUNCTION_NAMES_DECLARED:
                     self.prints_redefined[(node.lineno, node.col_offset)] = VIOLATIONS["declared"][arg.id]
         elif PY3:
             for arg in node.args.args:
-                if arg.arg in PRINT_FUNCTION_NAMES:
+                if arg.arg in FUNCTION_NAMES_DECLARED:
                     self.prints_redefined[(node.lineno, node.col_offset)] = VIOLATIONS["declared"][arg.arg]
 
             for arg in node.args.kwonlyargs:
-                if arg.arg in PRINT_FUNCTION_NAMES:
+                if arg.arg in FUNCTION_NAMES_DECLARED:
                     self.prints_redefined[(node.lineno, node.col_offset)] = VIOLATIONS["declared"][arg.arg]
         self.generic_visit(node)
 
     def visit_Name(self, node):
-        if node.id == PRINT_FUNCTION_NAME:
+        if node.id == FUNCTION_NAMES_DECLARED:
             self.prints_redefined[(node.lineno, node.col_offset)] = VIOLATIONS["declared"][node.id]
         self.generic_visit(node)
 
