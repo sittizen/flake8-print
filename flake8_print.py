@@ -1,5 +1,6 @@
 """Extension for flake8 that finds usage of print."""
 import pycodestyle
+import re
 import ast
 from six import PY2, PY3
 
