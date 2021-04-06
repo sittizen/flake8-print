@@ -26,8 +26,8 @@ class PrintFinder(ast.NodeVisitor):
     def visit_Call(self, node):
         is_print_function = bool(re.search(REGEX, str(getattr(node.func, "id", None))))
         is_print_function_attribute = (
-            bool(re.search(REGEX, getattr(getattr(node.func, "value", None), "id", None)))
-            and bool(re.search(REGEX, getattr(node.func, "attr", None))) 
+            bool(re.search(REGEX, str(getattr(getattr(node.func, "value", None), "id", None))))
+            and bool(re.search(REGEX, str(getattr(node.func, "attr", None))))
         )
         if is_print_function:
             self.prints_used[(node.lineno, node.col_offset)] = "T001 " + node.func.id + " found."
