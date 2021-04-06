@@ -10,18 +10,7 @@ except ImportError:
 
 __version__ = "4.0.0"
 
-PRINT_FUNCTION_NAME = "print"
-PPRINT_FUNCTION_NAME = "pprint"
-BREAKPOINT = "breakpoint"
-PEEK_FUNCTION_NAME = "peek"
-FUNCTION_NAMES_DECLARED = [PRINT_FUNCTION_NAME, PPRINT_FUNCTION_NAME, BREAKPOINT]
-FUNCTION_NAMES_FOUND = [PRINT_FUNCTION_NAME, PPRINT_FUNCTION_NAME, BREAKPOINT, PEEK_FUNCTION_NAME]
-
-VIOLATIONS = {
-    "found": {"print": "T001 print found.", "pprint": "T003 pprint found.", "breakpoint": "T005 breakpoint found.", "peek": "T007 peek found."},
-    "declared": {"print": "T002 Python 2.x reserved word print used.", "pprint": "T004 pprint declared"},
-}
-
+REGEX = "(print)|(pprint)|(breakpoint)|(peek)"
 
 class PrintFinder(ast.NodeVisitor):
     def __init__(self, *args, **kwargs):
@@ -31,40 +20,40 @@ class PrintFinder(ast.NodeVisitor):
 
     def visit_Print(self, node):
         """Only exists in python 2."""
-        self.prints_used[(node.lineno, node.col_offset)] = VIOLATIONS["found"][FUNCTION_NAMES_FOUND]
+        self.prints_used[(node.lineno, node.col_offset)] = "T001 function found."
 
     def visit_Call(self, node):
-        is_print_function = getattr(node.func, "id", None) in FUNCTION_NAMES_FOUND
+        is_print_function = bool(re.search(REGEX, getattr(node.func, "id", None)))
         is_print_function_attribute = (
-            getattr(getattr(node.func, "value", None), "id", None) in FUNCTION_NAMES_FOUND
-            and getattr(node.func, "attr", None) in FUNCTION_NAMES_FOUND
+            bool(re.search(REGEX, getattr(getattr(node.func, "value", None), "id", None)))
+            and bool(re.search(REGEX, getattr(node.func, "attr", None))) 
         )
         if is_print_function:
-            self.prints_used[(node.lineno, node.col_offset)] = VIOLATIONS["found"][node.func.id]
+            self.prints_used[(node.lineno, node.col_offset)] = "T001 " + node.func.id + " found."
         elif is_print_function_attribute:
-            self.prints_used[(node.lineno, node.col_offset)] = VIOLATIONS["found"][node.func.attr]
+            self.prints_used[(node.lineno, node.col_offset)] = "T001 " + node.func.attr + " found."
         self.generic_visit(node)
 
     def visit_FunctionDef(self, node):
-        if node.name in FUNCTION_NAMES_DECLARED:
-            self.prints_redefined[(node.lineno, node.col_offset)] = VIOLATIONS["declared"][node.name]
+        if bool(re.search(REGEX, node.name)):
+            self.prints_redefined[(node.lineno, node.col_offset)] = "T001 " + node.name + " found."
         if PY2:
             for arg in node.args.args:
-                if arg.id in FUNCTION_NAMES_DECLARED:
-                    self.prints_redefined[(node.lineno, node.col_offset)] = VIOLATIONS["declared"][arg.id]
+                if bool(re.search(REGEX, arg.id)):
+                    self.prints_redefined[(node.lineno, node.col_offset)] = "T001 " + arg.id + " found."
         elif PY3:
             for arg in node.args.args:
-                if arg.arg in FUNCTION_NAMES_DECLARED:
-                    self.prints_redefined[(node.lineno, node.col_offset)] = VIOLATIONS["declared"][arg.arg]
+                if bool(re.search(REGEX, arg.arg)):
+                    self.prints_redefined[(node.lineno, node.col_offset)] = "T001 " + arg.arg + " found."
 
             for arg in node.args.kwonlyargs:
-                if arg.arg in FUNCTION_NAMES_DECLARED:
-                    self.prints_redefined[(node.lineno, node.col_offset)] = VIOLATIONS["declared"][arg.arg]
+                if bool(re.search(REGEX, arg.arg)):
+                    self.prints_redefined[(node.lineno, node.col_offset)] = "T001 " + arg.arg + " found."
         self.generic_visit(node)
 
     def visit_Name(self, node):
-        if node.id == FUNCTION_NAMES_DECLARED:
-            self.prints_redefined[(node.lineno, node.col_offset)] = VIOLATIONS["declared"][node.id]
+        if bool(re.search(REGEX, node.id)):
+            self.prints_redefined[(node.lineno, node.col_offset)] = "T001 " + node.id + " found."
         self.generic_visit(node)
 
 
