@@ -30,31 +30,31 @@ class PrintFinder(ast.NodeVisitor):
             and bool(re.search(REGEX, str(getattr(node.func, "attr", None))))
         )
         if is_print_function:
-            self.prints_used[(node.lineno, node.col_offset)] = "T001 " + node.func.id + " found."
+            self.prints_used[(node.lineno, node.col_offset)] = "call: T001 " + node.func.id + " found."
         elif is_print_function_attribute:
-            self.prints_used[(node.lineno, node.col_offset)] = "T001 " + node.func.attr + " found."
+            self.prints_used[(node.lineno, node.col_offset)] = "call attribute: T001 " + node.func.attr + " found."
         self.generic_visit(node)
 
     def visit_FunctionDef(self, node):
         if bool(re.search(REGEX, node.name)):
-            self.prints_redefined[(node.lineno, node.col_offset)] = "T001 " + node.name + " found."
+            self.prints_redefined[(node.lineno, node.col_offset)] = "function def: T001 " + node.name + " found."
         if PY2:
             for arg in node.args.args:
                 if bool(re.search(REGEX, arg.id)):
-                    self.prints_redefined[(node.lineno, node.col_offset)] = "T001 " + arg.id + " found."
+                    self.prints_redefined[(node.lineno, node.col_offset)] = "function def_py2: T001 " + arg.id + " found."
         elif PY3:
             for arg in node.args.args:
                 if bool(re.search(REGEX, arg.arg)):
-                    self.prints_redefined[(node.lineno, node.col_offset)] = "T001 " + arg.arg + " found."
+                    self.prints_redefined[(node.lineno, node.col_offset)] = "function def_py3: T001 " + arg.arg + " found."
 
             for arg in node.args.kwonlyargs:
                 if bool(re.search(REGEX, arg.arg)):
-                    self.prints_redefined[(node.lineno, node.col_offset)] = "T001 " + arg.arg + " found."
+                    self.prints_redefined[(node.lineno, node.col_offset)] = "function def_py3_2: T001 " + arg.arg + " found."
         self.generic_visit(node)
 
     def visit_Name(self, node):
         if bool(re.search(REGEX, node.id)):
-            self.prints_redefined[(node.lineno, node.col_offset)] = "T001 " + node.id + " found."
+            self.prints_redefined[(node.lineno, node.col_offset)] = "function visit: T001 " + node.id + " found."
         self.generic_visit(node)
 
 
