@@ -11,7 +11,7 @@ except ImportError:
 
 __version__ = "4.0.0"
 
-REGEX = "(^print$)|(^pprint$)|(^breakpoint$)|(^peek$)"
+REGEX = "(^print$)|(^pprint$)|(^breakpoint$)|(^peek$)|(^rdb\.celery\(\)$)"
 
 class PrintFinder(ast.NodeVisitor):
     def __init__(self, *args, **kwargs):
